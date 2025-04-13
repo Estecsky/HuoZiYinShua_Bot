@@ -1,0 +1,8 @@
+{
+	"sourceDirectory": "K:/ottoHZYS/HuoZiYinShua/sources/",
+	"ysddSourceDirectory": "K:/ottoHZYS/HuoZiYinShua/ysddSources/",
+	"dictFile": "K:/ottoHZYS/HuoZiYinShua/dictionary.json",
+	"ysddTableFile": "K:/ottoHZYS/HuoZiYinShua/ysddTable.json"
+}
+
+// 必须使用绝对路径
