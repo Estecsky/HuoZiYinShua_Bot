@@ -3,11 +3,21 @@ import asyncio
 import subprocess
 from datetime import datetime
 import os
+from Pinyin2Hanzi import DefaultDagParams, dag,simplify_pinyin
+import json
+import re
 
 
-
+settings_path =  os.path.join(os.path.dirname(__file__), "settings.json")
 # 音频输出目录
 hzys_output_dir = os.path.join(os.path.dirname(__file__), "wav_output")
+
+with open(settings_path ,"r", encoding="utf-8") as f:
+    settings_hzys = json.load(f)
+    ysddTable_path = settings_hzys["ysddTableFile"]
+
+with open(ysddTable_path , "r", encoding="utf-8") as f:
+    ysddTable = json.load(f)
 
 
 def chinese_to_pinyin(text):
@@ -16,6 +26,46 @@ def chinese_to_pinyin(text):
     # 将列表中的拼音用空格连接成字符串
     result = ' '.join(pinyin_list)
     return result
+
+def pinyin_2_hanzi(pinyin_list):
+    dag_params = DefaultDagParams()
+    # 规范化拼音
+    simplified_pinyin_list = [simplify_pinyin(pinyin) for pinyin in pinyin_list]
+    result = dag(dag_params, simplified_pinyin_list, path_num=10, log=True)
+    if result:
+        return ''.join(result[0].path)  # 返回第一个路径的字符串
+    return ''  # 如果没有匹配到，返回空字符串
+
+def py2hanzi(pinyin_text,ori_text):
+    # 创建一个正则表达式模式来匹配所有字典中的关键词
+    pattern = re.compile(r'(' + '|'.join(re.escape(key) for key in ysddTable.keys()) + r')')
+    
+    # 使用正则表达式分割字符串
+    parts = pattern.split(pinyin_text)
+    matches = pattern.findall(pinyin_text)
+    
+    # 如果没有任何匹配，直接返回原始字符串
+    if len(matches) == 0:
+        return ori_text
+    else:
+        new_string = ""
+        for i, part in enumerate(parts):
+            if i % 2 == 0:
+                # 转换非关键词部分的拼音为汉字
+                py_lists = [piyi for piyi in part.split(" ") if piyi.isalpha()]
+                if py_lists:
+                    hanzi = pinyin_2_hanzi(py_lists)
+                    if hanzi:
+                        new_string += hanzi
+                    else:
+                        # 如果没有匹配到，返回原始的拼音对应的中文部分
+                        new_string += ori_text[:len(part.split(" "))]
+                else:
+                    new_string += part
+            else:
+                # 保留关键词
+                new_string += part
+    return new_string
 
 async def run_hzys(ori_text):
     # 参考：https://github.com/DSP-8192/HuoZiYinShua
@@ -34,6 +84,8 @@ async def run_hzys(ori_text):
     -r, --reverse :        频音的成生放倒
     -n, --norm   :         统一所有字音量
     '''
+    global settings_path
+    global hzys_output_dir
         # 获取当前时间戳
     current_time = datetime.now()
         # 创建输出目录
@@ -42,13 +94,14 @@ async def run_hzys(ori_text):
     # 格式化为字符串，例如：2023-10-05_14_30_00_123456
     current_time_str = current_time.strftime("%Y-%m-%d_%H_%M_%S_%f")
     text = chinese_to_pinyin(ori_text)
+    text = py2hanzi(text,ori_text)
     hzys_exe_path = os.path.join(os.path.dirname(__file__), "hzys.exe")
     process = await asyncio.create_subprocess_exec(
         hzys_exe_path,
         '-t', text,  # 输入的文字
         '-o', os.path.join(hzys_output_dir,f"{current_time_str}.wav"), # 输出目录以及文件名
         '-y',               # 使用原声大碟
-        '-set', os.path.join(os.path.dirname(__file__), "settings.json"),  # 配置文件路径，默认为同目录下的settings.json
+        '-set',settings_path,  # 配置文件路径，默认为同目录下的settings.json
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE
     )
@@ -70,7 +123,7 @@ async def main():
     # 并发运行两个任务
     await asyncio.gather(
         run_hzys(input_t1),
-        run_hzys(input_t2)
+        # run_hzys(input_t2)
     )
 
 if __name__ == "__main__":

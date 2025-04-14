@@ -1,2 +1,5 @@
 test/
 wav_output/
+__pycache__/__init__.cpython-312.pyc
+__pycache__/hzys_util.cpython-312.pyc
+__pycache__/main.cpython-312.pyc
