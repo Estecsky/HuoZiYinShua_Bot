@@ -8,7 +8,7 @@ from .hzys_util import hzys_output_dir,run_hzys,chinese_to_pinyin
 _log = get_log()
 HuoZiYinShua_help_info =[
     "活字印刷使用方法：",
-    "1.输入 /活字印刷+空格+消息，bot会生成otto活字印刷语音。",
+    "1.输入 /活字印刷+空格+消息，或者/hzys+空格+消息,bot会生成otto活字印刷语音。",
     "2.检测到原声大碟时，bot会自动发送原声大碟语音。",
     "3.输入 /活字印刷+空格+help 或者/活字印刷+空格+帮助，bot会自动发送帮助信息。",
 
@@ -58,7 +58,7 @@ class HuoZiYinShua_Bot(BasePlugin):
             if item["type"] == "text" :
                 if global_hzys_check:
                     hzys_yyds_text = item["data"]["text"].strip()
-                if item["data"]["text"].startswith("/活字印刷 "):
+                if item["data"]["text"].startswith("/活字印刷 ")or item["data"]["text"].startswith("/hzys "):
                     hzys_text = item["data"]["text"].strip()[6:]
                     print(hzys_text)
                     if hzys_text == "help" or hzys_text == "帮助" or hzys_text == "":

@@ -1,4 +1,4 @@
-from pypinyin import lazy_pinyin
+from pypinyin import lazy_pinyin,load_phrases_dict
 import asyncio
 import subprocess
 from datetime import datetime
@@ -19,6 +19,8 @@ with open(settings_path ,"r", encoding="utf-8") as f:
 with open(ysddTable_path , "r", encoding="utf-8") as f:
     ysddTable = json.load(f)
 
+# 自定义词组的拼音
+load_phrases_dict({'好恶心啊': [['hao'],['ě'], ['xin'],['a']], '谁': [['shéi']]})
 
 def chinese_to_pinyin(text):
     # 使用 lazy_pinyin 获取不带声调的拼音列表
@@ -38,7 +40,7 @@ def pinyin_2_hanzi(pinyin_list):
 
 def py2hanzi(pinyin_text,ori_text):
     # 创建一个正则表达式模式来匹配所有字典中的关键词
-    pattern = re.compile(r'(' + '|'.join(re.escape(key) for key in ysddTable.keys()) + r')')
+    pattern = re.compile(r'\b(' + '|'.join(re.escape(key) for key in ysddTable.keys()) + r')\b')
     
     # 使用正则表达式分割字符串
     parts = pattern.split(pinyin_text)
