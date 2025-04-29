@@ -39,8 +39,10 @@ def pinyin_2_hanzi(pinyin_list):
     return ''  # 如果没有匹配到，返回空字符串
 
 def py2hanzi(pinyin_text,ori_text):
+    # 按照键的长度降序排列，确保先匹配更长的键
+    sorted_keys = sorted(ysddTable.keys(), key=len, reverse=True)
     # 创建一个正则表达式模式来匹配所有字典中的关键词
-    pattern = re.compile(r'\b(' + '|'.join(re.escape(key) for key in ysddTable.keys()) + r')\b')
+    pattern = re.compile(r'\b(' + '|'.join(re.escape(key) for key in sorted_keys) + r')\b')
     
     # 使用正则表达式分割字符串
     parts = pattern.split(pinyin_text)
